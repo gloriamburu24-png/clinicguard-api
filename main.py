@@ -5,6 +5,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from datetime import datetime
+import os
 
 from database.session import get_session, create_tables
 from models.user import User, UserCreate, UserResponse
@@ -19,15 +20,27 @@ from auth import (
     get_receptionist_or_above
 )
 
-# Create tables on startup
-create_tables()
-
 app = FastAPI(title="ClinicGuard API", version="1.0.0")
 
+@app.on_event("startup")
+def on_startup():
+    """Create tables on application startup."""
+    create_tables()
+
 # ====== RATE LIMITING ======
-limiter = Limiter(key_func=get_remote_address)
-app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+# Disable rate limiting during tests
+if not os.getenv("DISABLE_RATE_LIMIT"):
+    limiter = Limiter(key_func=get_remote_address)
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+else:
+    # Dummy limiter that does nothing during tests
+    class DummyLimiter:
+        def limit(self, *args, **kwargs):
+            def decorator(func):
+                return func
+            return decorator
+    limiter = DummyLimiter()
 
 # ====== AUTHENTICATION ENDPOINTS ======
 
@@ -254,3 +267,14 @@ def toggle_user_activation(
     user.is_active = activate
     session.commit()
     return {"message": f"User {user.username} activation set to {activate}"}
+
+# ====== HEALTH CHECK ENDPOINT ======
+
+@app.get("/health")
+def health_check():
+    """Health check endpoint for monitoring."""
+    return {
+        "status": "healthy",
+        "timestamp": datetime.utcnow().isoformat(),
+        "version": "1.0.0"
+    }
