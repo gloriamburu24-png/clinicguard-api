@@ -1,0 +1,27 @@
+# Virtual Environment
+venv/
+.venv/
+env/
+.env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Database files
+*.db
+*.sqlite
+
+# IDE files
+.vscode/
+.idea/
+
+# Environment variables
+.env
+
+# Uploaded files
+uploads/
+
+# Docker volumes
+postgres_data/
