@@ -10,7 +10,7 @@ os.environ["DATABASE_URL"] = "sqlite:///./test.db"
 import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, SQLModel, create_engine
-from main import app
+from main import app, get_session  # <--- IMPORT get_session HERE
 
 TEST_DATABASE_URL = "sqlite:///./test.db"
 
@@ -27,6 +27,7 @@ def client():
         with Session(engine) as session:
             yield session
     
+    # Override the dependency with our test session
     app.dependency_overrides[get_session] = get_test_session
     
     yield TestClient(app)
