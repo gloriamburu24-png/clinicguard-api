@@ -4,14 +4,15 @@ import os
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+# Get DATABASE_URL from environment, fallback to SQLite for tests
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test.db")
 
 def get_engine():
-    """Create and return the database engine lazily."""
-    if DATABASE_URL:
+    """Create and return the database engine."""
+    if DATABASE_URL and DATABASE_URL.startswith("postgresql"):
         return create_engine(DATABASE_URL, echo=True)
     else:
-        # Fallback to SQLite for testing
+        # SQLite fallback for testing
         return create_engine("sqlite:///./test.db", echo=True, connect_args={"check_same_thread": False})
 
 # Lazy engine - created only when needed
