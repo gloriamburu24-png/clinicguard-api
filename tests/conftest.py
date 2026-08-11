@@ -6,6 +6,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ["PYTEST_RUNNING"] = "1"
 os.environ["DISABLE_RATE_LIMIT"] = "1"
 
+# Set a default DATABASE_URL for tests
+os.environ["DATABASE_URL"] = "sqlite:///./test.db"
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, SQLModel, create_engine
